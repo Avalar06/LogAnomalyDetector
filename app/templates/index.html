@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Anomaly Detection Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}" type="image/x-icon" />
+
+</head>
+<body>
+  <div class="container-fluid">
+    <h1 class="page-title">Anomaly Detection Dashboard</h1>
+    <!---source switcher -->
+    <div id="sourceSwitch" class="seg">
+  <button data-src="live"   class="seg-btn active">Live</button>
+  <button data-src="all"    class="seg-btn">All</button>
+  <button data-src="uploads" class="seg-btn">Uploads</button>
+</div>
+<!-- Timezone Switch -->
+<div id="timezoneSwitch" class="tz-switch">
+  <button id="tzUTC" onclick="setTimezone('UTC')" class="tz-btn active">UTC</button>
+  <button id="tzIST" onclick="setTimezone('IST')" class="tz-btn">IST</button>
+</div>
+
+
+    <!-- Dataset Upload Control -->
+<div id="uploadControl">
+  <button id="uploadBtn" type="button">Upload Dataset (CSV)</button>
+  <input id="uploadInput" type="file" accept=".csv" style="display:none" />
+</div>
+
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-tile">
+        <div class="stat-number" id="totalAnomalies">0</div>
+        <div class="stat-label">Total anomalies</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-number" id="last10m">0</div>
+        <div class="stat-label">Last 10 minutes</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-number" id="last1h">0</div>
+        <div class="stat-label">Last 1 hour</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-number" id="last24h">0</div>
+        <div class="stat-label">Last 24 hours</div>
+      </div>
+    </div>
+<!-- Main grid -->
+<div class="main-grid">
+  <div class="chart-card card">
+    <h4 class="muted">Anomalies Over Time</h4>
+    <canvas id="anomalyChart"></canvas>
+  </div>
+
+  <div class="right-col">
+    <div class="big-number-card">
+      <div class="label">Anomalies Detected</div>
+      <div class="num" id="bigNumber">0</div>
+    </div>
+
+    <div class="chart-card card">
+      <h4 class="muted">Anomalies by Service</h4>
+      <canvas id="serviceDonut"></canvas>
+    </div>
+  </div>
+</div>
+
+
+    <!-- Latest anomalies -->
+    <div class="table-card card">
+      <h4 class="muted">Latest anomalies</h4>
+      <div class="table-responsive">
+        <table class="table" id="anomaliesTable">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Host</th>
+              <th>Service</th>
+              <th>Message</th>
+              <th>Prob</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        
+        <!--table colapse-->
+        <div class="anomaly-toggle">
+          <span id="anomalyCountText" class="anomaly-count-text"></span>
+           <button id="toggleAnomaliesBtn">Show more</button>
+          </div>
+
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+<div id="toastContainer"></div>
+
+
+
+  <!-- Chart.js (time scale support) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.1/build/global/luxon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.0/dist/chartjs-adapter-luxon.min.js"></script>
+
+  <!-- Your dashboard script (must match file name in static/js/) -->
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

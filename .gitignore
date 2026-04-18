@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual Environment
+.venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+logs/
+*.log
+
+# Data (VERY IMPORTANT)
+data/
+*.csv
+*.npz
+*.zip
+
+# Models (CRITICAL)
+models/
+*.joblib
+*.pkl
+
+# Backups
+backups/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary
+*.tmp
