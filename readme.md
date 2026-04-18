@@ -1,340 +1,163 @@
-\# Adaptive ML-Based Log Anomaly Detection System
+# Adaptive ML-Based Log Anomaly Detection System
 
+## 1. Overview
 
+This project presents a real-time log anomaly detection system powered by Machine Learning. The system continuously monitors log streams, detects anomalous patterns using trained models, and visualizes the results through an interactive dashboard.
 
-\## 📌 Overview
+The architecture is designed to simulate a Security Operations Center (SOC)-style monitoring workflow, enabling proactive identification of suspicious behavior in system logs.
 
+---
 
+## 2. Objectives
 
-This project presents a \*\*real-time log anomaly detection system\*\* powered by Machine Learning. It continuously monitors system logs, detects anomalies using trained ML models, and visualizes them through an interactive dashboard.
+* Detect anomalies in log data using machine learning techniques
+* Provide real-time monitoring and visualization
+* Build a scalable and modular processing pipeline
+* Support future SOC-level enhancements such as alerting and response actions
 
+---
 
+## 3. System Architecture
 
-The system is designed to simulate \*\*SOC (Security Operations Center)-style monitoring\*\*, enabling proactive detection of suspicious activities in log streams.
-
-
-
-\---
-
-
-
-\## 🎯 Objectives
-
-
-
-\* Detect anomalies in log data using ML techniques
-
-\* Provide real-time monitoring and visualization
-
-\* Build a scalable and modular pipeline
-
-\* Enable future SOC-level enhancements (alerts, actions, correlation)
-
-
-
-\---
-
-
-
-\## 🧠 Key Features
-
-
-
-\### 🔍 Real-Time Log Monitoring
-
-
-
-\* Continuous log ingestion using log tailing
-
-\* Live anomaly detection pipeline
-
-
-
-\### 🤖 Machine Learning Detection
-
-
-
-\* TF-IDF based feature extraction
-
-\* Random Forest classifier
-
-\* Probability-based anomaly scoring
-
-
-
-\### 📊 Interactive Dashboard
-
-
-
-\* Real-time anomaly visualization
-
-\* Filtering by:
-
-
-
-&#x20; \* Service
-
-&#x20; \* Time range
-
-&#x20; \* Dataset source
-
-\* Summary metrics and graphs
-
-
-
-\### 📁 Multi-Dataset Support
-
-
-
-\* Supports both:
-
-
-
-&#x20; \* Live system logs
-
-&#x20; \* Uploaded datasets (e.g., HDFS, ADFA)
-
-
-
-\### ⚙️ Modular Architecture
-
-
-
-\* Clean separation:
-
-
-
-&#x20; \* Data processing
-
-&#x20; \* Feature engineering
-
-&#x20; \* Model inference
-
-&#x20; \* Visualization
-
-
-
-\---
-
-
-
-\## 🏗️ System Architecture
-
-
-
-```
+The system follows a modular pipeline:
 
 Log Source → Log Tailer → Parser → Feature Extraction → ML Model → Anomaly Writer → Flask API → Dashboard
 
+---
+
+## 4. Key Features
+
+### 4.1 Real-Time Log Monitoring
+
+* Continuous ingestion of logs using a log tailing mechanism
+* Streaming-based processing pipeline for live detection
+
+### 4.2 Machine Learning-Based Detection
+
+* TF-IDF vectorization for text-based feature extraction
+* Random Forest classifier for anomaly detection
+* Probability-based scoring for anomaly confidence
+
+### 4.3 Interactive Dashboard
+
+* Real-time visualization of detected anomalies
+* Filtering capabilities based on:
+
+  * Service
+  * Time range
+  * Dataset source
+* Summary statistics and graphical insights
+
+### 4.4 Multi-Dataset Support
+
+* Supports both live system logs and uploaded datasets
+* Flexible schema normalization for different log formats
+
+### 4.5 Modular Design
+
+* Separation of concerns across data ingestion, processing, inference, and visualization
+* Extensible architecture for future enhancements
+
+---
+
+## 5. Project Structure
+
 ```
-
-
-
-\---
-
-
-
-\## 📂 Project Structure
-
-
-
-```
-
 LogAnomalyDetector/
-
 │
-
-├── app/                # Flask dashboard (frontend + API)
-
-├── src/                # Core ML and processing logic
-
-├── scripts/            # Data parsing and monitoring scripts
-
-├── notebooks/          # Training, preprocessing, evaluation
-
-├── reports/            # Evaluation results \& graphs
-
-├── requirements.txt    # Dependencies
-
-├── start\_all.bat       # Run full pipeline
-
-└── .gitignore          # Ignored files (models, logs, data)
-
+├── app/                # Flask application (dashboard and API)
+├── src/                # Core logic (preprocessing, model, inference)
+├── scripts/            # Log parsing and monitoring scripts
+├── notebooks/          # Data preparation, training, evaluation
+├── reports/            # Model evaluation results and visualizations
+├── requirements.txt    # Python dependencies
+├── start_all.bat       # Script to start the pipeline
+└── .gitignore          # Ignored files (models, logs, datasets)
 ```
 
+---
 
+## 6. Technology Stack
 
-\---
+* Backend: Python, Flask
+* Machine Learning: Scikit-learn (Random Forest, TF-IDF)
+* Data Processing: Pandas, NumPy
+* Frontend: HTML, CSS, JavaScript
+* Visualization: Chart-based dashboard
 
+---
 
+## 7. Model Performance
 
-\## ⚙️ Tech Stack
+The model is trained on the ADFA-LD dataset.
 
+* Accuracy: 96.61%
+* Precision: 0.8962
+* Recall: 0.8297
+* F1 Score: 0.8617
 
+Evaluation artifacts such as confusion matrices and performance graphs are available in the `reports/` directory.
 
-\* \*\*Backend:\*\* Python, Flask
+---
 
-\* \*\*ML:\*\* Scikit-learn (Random Forest, TF-IDF)
+## 8. Installation and Setup
 
-\* \*\*Frontend:\*\* HTML, CSS, JavaScript
-
-\* \*\*Data Processing:\*\* Pandas, NumPy
-
-\* \*\*Visualization:\*\* Chart.js / custom dashboard
-
-
-
-\---
-
-
-
-\## 📊 Model Performance
-
-
-
-Trained on ADFA-LD dataset:
-
-
-
-\* \*\*Accuracy:\*\* 96.61%
-
-\* \*\*Precision:\*\* 0.896
-
-\* \*\*Recall:\*\* 0.829
-
-\* \*\*F1 Score:\*\* 0.861
-
-
-
-Confusion matrices and performance graphs are available in the `reports/` folder.
-
-
-
-\---
-
-
-
-\## 🚀 How to Run
-
-
-
-\### 1. Clone the repository
-
-
+### 8.1 Clone the Repository
 
 ```
-
 git clone https://github.com/Avalar06/LogAnomalyDetector.git
-
 cd LogAnomalyDetector
-
 ```
 
-
-
-\### 2. Install dependencies
-
-
+### 8.2 Install Dependencies
 
 ```
-
 pip install -r requirements.txt
-
 ```
 
-
-
-\### 3. Start the system
-
-
+### 8.3 Run the System
 
 ```
-
-start\_all.bat
-
+start_all.bat
 ```
 
-
-
-\### 4. Run dashboard
-
-
+### 8.4 Start the Dashboard
 
 ```
-
 cd app
-
-set FLASK\_APP=app.py
-
+set FLASK_APP=app.py
 flask run
-
 ```
 
+---
 
+## 9. Use Cases
 
-\---
+* Security monitoring systems
+* Intrusion detection frameworks
+* Log analytics platforms
+* Machine learning research in anomaly detection
 
+---
 
+## 10. Future Work
 
-\## 📈 Use Cases
+* Implementation of anomaly lifecycle management (acknowledge, close, false positive)
+* Severity scoring and risk classification
+* Alerting mechanisms (email or notification-based)
+* Correlation of anomalies across multiple sources
+* Deployment in cloud environments
 
+---
 
+## 11. Author
 
-\* Security monitoring (SOC simulation)
-
-\* Intrusion detection systems
-
-\* Log analytics platforms
-
-\* ML-based anomaly detection research
-
-
-
-\---
-
-
-
-\## 🔮 Future Enhancements
-
-
-
-\* Anomaly lifecycle management (acknowledge, close, false positive)
-
-\* Severity scoring and threat classification
-
-\* Alerting system (email/SMS)
-
-\* Correlation rules across logs
-
-\* Cloud deployment (AWS / Azure)
-
-
-
-\---
-
-
-
-\## 👨‍💻 Author
-
-
-
-\*\*Ayush Dutta\*\*
-
+Ayush Dutta
 Master’s Student (BCA Background)
+End-Semester Dissertation Project
 
-Project: End-Semester Dissertation
+---
 
+## 12. License
 
-
-\---
-
-
-
-\## 📜 License
-
-
-
-This project is for academic and research purposes.
-
-
-
+This project is intended for academic and research purposes.
