@@ -10,11 +10,11 @@ from typing import Dict, Any
 from datetime import datetime, timezone
 
 # -------------------------------------------------------------------
-# Time helper
+# Time helper (FIXED → consistent with API)
 # -------------------------------------------------------------------
 
 def now_utc_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 # -------------------------------------------------------------------
 # Paths & limits
@@ -26,7 +26,7 @@ SEEN_KEYS_FILE = PROJECT_ROOT / ".seen_keys.json"
 MAX_SEEN_KEYS = 20_000
 
 # -------------------------------------------------------------------
-# CANONICAL CSV SCHEMA (MUST MATCH app.py + dashboard)
+# CANONICAL CSV SCHEMA (LOCKED)
 # -------------------------------------------------------------------
 
 CANONICAL_FIELDS = [
@@ -40,25 +40,19 @@ CANONICAL_FIELDS = [
     "pid",
     "model",
     "source",
+    "severity",
+
+    "matched_rule",
+    "active_event_count",
+    "correlation_triggered",
+    "escalation_reason",
 ]
 
 # -------------------------------------------------------------------
-# Deduplication key (STABLE, BUT NOT OVER-AGGRESSIVE)
+# Deduplication key
 # -------------------------------------------------------------------
 
 def make_row_key(row: Dict[str, Any]) -> str:
-    """
-    Dedup key based on:
-      - host
-      - service
-      - message
-      - pid
-
-    NOTE:
-    - detected_at is NOT included
-    - timestamp is NOT included (same event can reappear later)
-    """
-
     host = (row.get("host") or "").strip()
     svc  = (row.get("service") or "").strip()
     msg  = (row.get("message") or "").strip()
@@ -88,17 +82,60 @@ def save_seen_keys(seen: Dict[str, int]) -> None:
         pass
 
 # -------------------------------------------------------------------
-# Atomic CSV append with FIXED HEADER
+# Normalize row (STRICT + SAFE)
+# -------------------------------------------------------------------
+
+def normalize_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    clean = {}
+
+    for field in CANONICAL_FIELDS:
+        val = row.get(field, "")
+
+        try:
+            if field == "prob_anomaly":
+                val = float(val) if val != "" else 0.0
+
+            elif field == "is_anomaly_pred":
+                val = int(val) if val != "" else 0
+
+            elif field == "pid":
+                val = int(val) if val != "" else 0
+
+            elif field == "severity":
+                val = str(val).upper() if val else "LOW"
+
+            else:
+                val = str(val)
+
+        except Exception:
+            # Hard fallback safety
+            if field in ["prob_anomaly"]:
+                val = 0.0
+            elif field in ["is_anomaly_pred", "pid"]:
+                val = 0
+            elif field == "severity":
+                val = "LOW"
+            else:
+                val = ""
+
+        clean[field] = val
+
+    return clean
+
+# -------------------------------------------------------------------
+# Atomic append (SAFE + HEADER-PROTECTED)
 # -------------------------------------------------------------------
 
 def append_row_atomic(row: Dict[str, Any]) -> bool:
     try:
         ANOMALIES_CSV.parent.mkdir(parents=True, exist_ok=True)
+
+        clean_row = normalize_row(row)
+
         file_exists = ANOMALIES_CSV.exists()
+        needs_header = not file_exists or ANOMALIES_CSV.stat().st_size == 0
 
-        # Enforce canonical schema and ordering
-        clean_row = {field: row.get(field, "") for field in CANONICAL_FIELDS}
-
+        # Write ONLY the new row to temp
         with tempfile.NamedTemporaryFile(
             mode="w",
             delete=False,
@@ -108,22 +145,22 @@ def append_row_atomic(row: Dict[str, Any]) -> bool:
         ) as tf:
             writer = csv.DictWriter(tf, fieldnames=CANONICAL_FIELDS)
 
-            if not file_exists:
+            if needs_header:
                 writer.writeheader()
 
             writer.writerow(clean_row)
             tf.flush()
             os.fsync(tf.fileno())
+
             tmp_path = Path(tf.name)
 
-        if file_exists:
-            with open(ANOMALIES_CSV, "ab") as dst, open(tmp_path, "rb") as src:
-                dst.write(src.read())
-                dst.flush()
-                os.fsync(dst.fileno())
-            tmp_path.unlink(missing_ok=True)
-        else:
-            tmp_path.replace(ANOMALIES_CSV)
+        # Append safely
+        with open(ANOMALIES_CSV, "ab") as dst, open(tmp_path, "rb") as src:
+            dst.write(src.read())
+            dst.flush()
+            os.fsync(dst.fileno())
+
+        tmp_path.unlink(missing_ok=True)
 
         return True
 
@@ -132,38 +169,27 @@ def append_row_atomic(row: Dict[str, Any]) -> bool:
         return False
 
 # -------------------------------------------------------------------
-# Anomaly Writer (RECTIFIED, PRODUCTION-SAFE)
+# Anomaly Writer
 # -------------------------------------------------------------------
 
 class AnomalyWriter:
-    """
-    Central writer for live and uploaded anomalies.
-
-    Guarantees:
-    - Fixed CSV schema
-    - Stable dedup
-    - No header corruption
-    - detected_at preserved if already set
-    """
 
     def __init__(self):
         self.seen = load_seen_keys()
         self._counter = max(self.seen.values(), default=0) + 1
 
     def append_anomaly(self, row: Dict[str, Any]) -> bool:
-        """
-        Append anomaly if new.
-        Returns True only if actually written.
-        """
 
-        # Only set detected_at if not already provided
+        # --- Ensure timestamps ---
+        if not row.get("timestamp"):
+            row["timestamp"] = now_utc_iso()
+
         if not row.get("detected_at"):
-            row["detected_at"] = now_utc_iso()
+            row["detected_at"] = row["timestamp"]
 
-        # Enforce required fields (never let them be missing)
-        for field in CANONICAL_FIELDS:
-            if field not in row:
-                row[field] = ""
+        # --- Ensure severity ---
+        if not row.get("severity"):
+            row["severity"] = "LOW"
 
         key = make_row_key(row)
 
@@ -176,13 +202,13 @@ class AnomalyWriter:
         self.seen[key] = self._counter
         self._counter += 1
 
-        # Trim seen-keys
+        # Trim memory
         if len(self.seen) > MAX_SEEN_KEYS:
             self.seen = dict(
                 sorted(self.seen.items(), key=lambda kv: kv[1])[-MAX_SEEN_KEYS:]
             )
 
-        # Persist periodically
+        # Periodic persistence
         if self._counter % 50 == 0:
             save_seen_keys(self.seen)
 

@@ -1,0 +1,30 @@
+// Adaptive ML-Based Log Anomaly Detection Pipeline
+digraph {
+	rankdir=TB
+	node [fontsize=12 shape=box style=rounded]
+	A [label="Live Monitoring Logs
+or Uploaded Dataset"]
+	B [label="Log Collection"]
+	C [label="Data Cleaning & Normalization"]
+	D [label="TF-IDF + Structured
+Feature Engineering"]
+	E [label="Feature Vector Matrix"]
+	F [label="Random Forest
+Detection Engine"]
+	G [label="Probability-Based
+Prediction"]
+	H [label="Severity Classification
+(HIGH / MEDIUM / LOW)"]
+	I [label="Threat Level Assessment"]
+	J [label="Dashboard Visualization
+and Analyst Review"]
+	A -> B
+	B -> C
+	C -> D
+	D -> E
+	E -> F
+	F -> G
+	G -> H
+	H -> I
+	I -> J
+}

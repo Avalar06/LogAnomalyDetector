@@ -24,40 +24,154 @@
 </div>
 
 
-    <!-- Dataset Upload Control -->
-<div id="uploadControl">
-  <button id="uploadBtn" type="button">Upload Dataset (CSV)</button>
-  <input id="uploadInput" type="file" accept=".csv" style="display:none" />
+<!-- Top Controls (Upload + Export) -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+
+  <!-- Left side (can stay empty or future filters) -->
+  <div></div>
+
+  <!-- Right side controls -->
+  <div style="display:flex; gap:10px; align-items:center;">
+
+    <!-- Export Buttons -->
+    <button id="exportCSV" class="seg-btn">Export CSV</button>
+    <button id="exportJSON" class="seg-btn">Export JSON</button>
+
+    <!-- Upload -->
+    <div id="uploadControl">
+      <button id="uploadBtn" type="button">Upload Dataset (CSV)</button>
+      <input id="uploadInput" type="file" accept=".csv" style="display:none" />
+    </div>
+
+    <button id="retrainBtn" class="seg-btn">
+      Retrain Model
+    </button>
+
+  </div>
 </div>
 
+<!-- CRITICAL THREAT BANNER -->
+<div id="criticalThreatBanner" class="critical-banner hidden">
+  ⚠ CRITICAL THREAT DETECTED — Immediate analyst attention required.
+</div>
 
-    <!-- Stats -->
-    <div class="stats-grid">
-      <div class="stat-tile">
-        <div class="stat-number" id="totalAnomalies">0</div>
-        <div class="stat-label">Total anomalies</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-number" id="last10m">0</div>
-        <div class="stat-label">Last 10 minutes</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-number" id="last1h">0</div>
-        <div class="stat-label">Last 1 hour</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-number" id="last24h">0</div>
-        <div class="stat-label">Last 24 hours</div>
-      </div>
+<!-- Stats -->
+<div class="stats-grid">
+
+  <div class="stat-tile">
+    <div class="stat-number" id="totalAnomalies">0</div>
+    <div class="stat-label">Total anomalies</div>
+  </div>
+
+  <div class="stat-tile">
+    <div class="stat-number" id="last10m">0</div>
+    <div class="stat-label">Last 10 minutes</div>
+  </div>
+
+  <div class="stat-tile">
+    <div class="stat-number" id="last1h">0</div>
+    <div class="stat-label">Last 1 hour</div>
+  </div>
+
+  <div class="stat-tile">
+    <div class="stat-number" id="last24h">0</div>
+    <div class="stat-label">Last 24 hours</div>
+  </div>
+
+  <div class="stat-tile">
+    <div class="stat-number" id="threatLevel">NORMAL</div>
+    <div class="stat-label">Threat Level</div>
+  </div>
+
+  <!-- Model Status -->
+  <div class="stat-tile">
+
+    <div class="stat-number" id="modelStatus">
+      RF-Calibrated
     </div>
+
+    <div class="stat-label">
+      Model Status
+    </div>
+
+    <div style="font-size:12px; margin-top:6px;">
+
+      <div id="deploymentStatus">
+        Deployment: Production
+      </div>
+
+      <div id="lastRetrain">
+        Last Retrain: --
+      </div>
+
+      <div id="feedbackRows">
+        Feedback Samples: --
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Last Retraining -->
+  <div class="stat-tile">
+
+    <div class="stat-number" id="retrainOutcome">
+      --
+    </div>
+
+    <div class="stat-label">
+      Last Retraining
+    </div>
+
+    <div style="font-size:12px; margin-top:6px;">
+
+      <div id="retrainPrecision">
+        Precision: --
+      </div>
+
+      <div id="retrainRecall">
+        Recall: --
+      </div>
+
+      <div id="retrainF1">
+        F1 Score: --
+      </div>
+
+      <div id="retrainThreshold">
+        Best Threshold: --
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Decision Assistant -->
+<div class="card" id="decisionAssistant">
+
+  <h4 class="muted">Decision Assistant</h4>
+
+  <div id="assistantRecommendation">
+    Loading...
+  </div>
+
+  <div id="assistantReason" style="margin-top:10px;">
+    --
+  </div>
+
+</div>
+
 <!-- Main grid -->
 <div class="main-grid">
+
   <div class="chart-card card">
     <h4 class="muted">Anomalies Over Time</h4>
     <canvas id="anomalyChart"></canvas>
   </div>
 
   <div class="right-col">
+
     <div class="big-number-card">
       <div class="label">Anomalies Detected</div>
       <div class="num" id="bigNumber">0</div>
@@ -67,13 +181,37 @@
       <h4 class="muted">Anomalies by Service</h4>
       <canvas id="serviceDonut"></canvas>
     </div>
+
   </div>
+
 </div>
 
+<!-- LIVE SOC MONITOR -->
+<div id="eventMonitorCard" class="card live-monitor-card">
 
-    <!-- Latest anomalies -->
-    <div class="table-card card">
-      <h4 class="muted">Latest anomalies</h4>
+  <h4 class="muted">Event Ingestion Monitor</h4>
+
+  <div id="liveMonitorConsole" class="live-console">
+
+    Waiting for live events...
+
+  </div>
+
+</div>
+<!-- Latest anomalies -->
+ <div class="table-card card">
+  
+  <h4 class="muted">Latest anomalies</h4>
+<button onclick="setSeverityFilter('ALL')" data-sev="ALL">All / Reset</button>
+<button onclick="setSeverityFilter('HIGH')" data-sev="HIGH">High</button>
+<button onclick="setSeverityFilter('MEDIUM')" data-sev="MEDIUM">Medium</button>
+<button onclick="setSeverityFilter('LOW')" data-sev="LOW">Low</button>
+      <!-- 🔴 Severity Counters -->
+       <div id="severityCounters" class="severity-counters">
+        <span class="sev-count high">HIGH: <b id="countHigh">0</b></span>
+        <span class="sev-count medium">MEDIUM: <b id="countMedium">0</b></span>
+        <span class="sev-count low">LOW: <b id="countLow">0</b></span>
+</div>
       <div class="table-responsive">
         <table class="table" id="anomaliesTable">
           <thead>
@@ -81,8 +219,11 @@
               <th>Time</th>
               <th>Host</th>
               <th>Service</th>
+              <th>Severity</th>
               <th>Message</th>
               <th>Prob</th>
+              <th>Status</th>   
+              <th>Action</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -98,7 +239,20 @@
       </div>
     </div>
   </div>
+<!-- ANALYST DRILL-DOWN PANEL -->
+<div id="analystPanel" class="analyst-panel hidden">
 
+  <div class="analyst-panel-header">
+    Threat Investigation Panel
+  </div>
+
+  <div id="analystPanelContent">
+
+    Select an anomaly to inspect details.
+
+  </div>
+
+</div>
   <!-- Toast container -->
 <div id="toastContainer"></div>
 
